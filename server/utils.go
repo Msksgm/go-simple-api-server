@@ -5,6 +5,9 @@ import (
 	"io"
 	"log"
 	"net/http"
+
+	"github.com/golang-jwt/jwt"
+	"github.com/msksgm/go-simple-api-server/model"
 )
 
 // M is a generic map
@@ -28,4 +31,20 @@ func writeJSON(w http.ResponseWriter, code int, data interface{}) {
 
 func readJSON(body io.Reader, input interface{}) error {
 	return json.NewDecoder(body).Decode(input)
+}
+
+var hmacSampleSecret = []byte("sample-secret")
+
+func generateUserToken(user *model.User) (string, error) {
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"id":       user.Username,
+		"username": user.Username,
+	})
+
+	tokenString, err := token.SignedString(hmacSampleSecret)
+	if err != nil {
+		return "", err
+	}
+
+	return tokenString, nil
 }

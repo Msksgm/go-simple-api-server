@@ -48,6 +48,35 @@ func Test_createUser(t *testing.T) {
 	}
 }
 
+func Test_loginUser(t *testing.T) {
+	userStore := &mock.UserService{}
+	srv := testServer()
+	srv.userService = userStore
+
+	userStore.AuthenticateFn = func() *model.User {
+		user := &model.User{
+			Username: "username",
+		}
+		return user
+	}
+
+	input := `{
+		"user": {
+			"username": "username",
+			"password": "password"
+		}
+	}`
+
+	req := httptest.NewRequest(http.MethodPost, "/api/v1/users/login", strings.NewReader(input))
+	w := httptest.NewRecorder()
+
+	srv.router.ServeHTTP(w, req)
+
+	if code := w.Code; code != http.StatusOK {
+		t.Errorf("expected status code of 200, but got %d", code)
+	}
+}
+
 func extractResponseUserBody(body io.Reader, v interface{}) {
 	mm := M{}
 	_ = readJSON(body, &mm)

@@ -16,6 +16,14 @@ type User struct {
 	UpdatedAt    time.Time `json:"-" db:"updated_at"`
 }
 
+type UserFilter struct {
+	ID       *uint
+	Username *string
+
+	Limit  int
+	Offset int
+}
+
 func (u *User) SetPassword(password string) error {
 	hashBytes, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
@@ -27,6 +35,14 @@ func (u *User) SetPassword(password string) error {
 	return nil
 }
 
+func (u User) VerifyPassword(password string) bool {
+	err := bcrypt.CompareHashAndPassword([]byte(u.PasswordHash), []byte(password))
+
+	return err == nil
+}
+
 type UserService interface {
+	Authenticate(ctx context.Context, username, password string) (*User, error)
+
 	CreateUser(context.Context, *User) error
 }

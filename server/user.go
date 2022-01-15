@@ -75,3 +75,37 @@ func (s *Server) createUser() http.HandlerFunc {
 		writeJSON(w, http.StatusCreated, M{"user": user})
 	}
 }
+
+func (s *Server) loginUser() http.HandlerFunc {
+	type Input struct {
+		User struct {
+			Username string `json:"username"`
+			Password string `json:"password"`
+		} `json:"user"`
+	}
+
+	return func(w http.ResponseWriter, r *http.Request) {
+		input := Input{}
+
+		if err := readJSON(r.Body, &input); err != nil {
+			errorResponse(w, http.StatusUnprocessableEntity, err)
+			return
+		}
+
+		user, err := s.userService.Authenticate(r.Context(), input.User.Username, input.User.Password)
+
+		if err != nil || user == nil {
+			invalidUserCredentialsError(w)
+			return
+		}
+
+		token, err := generateUserToken(user)
+		if err != nil {
+			serverError(w, err)
+			return
+		}
+
+		user.Token = token
+		writeJSON(w, http.StatusOK, M{"user": user})
+	}
+}

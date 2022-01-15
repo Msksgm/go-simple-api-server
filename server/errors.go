@@ -39,6 +39,11 @@ func errorResponse(w http.ResponseWriter, code int, errs interface{}) {
 	writeJSON(w, code, M{"errors": errs})
 }
 
+func invalidUserCredentialsError(w http.ResponseWriter) {
+	msg := "invalid authentication credentials"
+	errorResponse(w, http.StatusUnauthorized, msg)
+}
+
 func checkTagRules(e validator.FieldError) (errMsg string) {
 	tag, field, param := e.ActualTag(), e.Field(), e.Param()
 
